@@ -13,7 +13,9 @@ New-Item -ItemType Directory -Path $Tmp | Out-Null
 try {
   $Archive = Join-Path $Tmp "stem.tar.gz"
   Invoke-WebRequest -Uri $Url -OutFile $Archive -UseBasicParsing
-  $Expected = ((Invoke-WebRequest -Uri "$Url.sha256" -UseBasicParsing).Content -split "\s+")[0].ToLower()
+  $Sums = Join-Path $Tmp "stem.tar.gz.sha256"
+  Invoke-WebRequest -Uri "$Url.sha256" -OutFile $Sums -UseBasicParsing
+  $Expected = ((Get-Content -Raw $Sums).Trim() -split "\s+")[0].ToLower()
   $Actual = (Get-FileHash -Algorithm SHA256 $Archive).Hash.ToLower()
   if ($Expected -ne $Actual) { throw "stem: checksum mismatch, not installing" }
   tar -xzf $Archive -C $Tmp
